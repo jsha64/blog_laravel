@@ -2,10 +2,11 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
-// use App\Models\Subscription;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+
 use Tests\TestCase;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use App\Models\User;
+use Laravel\Sanctum\Sanctum;
 
 class SubscriptionTest extends TestCase
 {
@@ -14,9 +15,8 @@ class SubscriptionTest extends TestCase
     /** @test */
     public function guests_cannot_subscribe()
     {
-        $response = $this->postJson('/subscriptions', ['plan' => 'premium']);
+        $response = $this->postJson('/api/subscriptions', ['plan' => 'premium']);
 
-        // $response->assertRedirect('/login');
         $response->assertStatus(401);
     }
 
@@ -24,22 +24,20 @@ class SubscriptionTest extends TestCase
     public function it_requires_a_plan_to_subscribe()
     {
         $user = User::factory()->create();
-        $this->actingAs($user);
+        Sanctum::actingAs($user);
 
-        $response = $this->post('/subscriptions', ['plan' => '']);
+        $response = $this->postJson('/api/subscriptions', ['plan' => '']);
 
-        $response->assertSessionHasErrors('plan');
+        $response->assertStatus(422);
     }
 
     /** @test */
     public function authenticated_users_can_subscribe_with_valid_plan()
     {
         $user = User::factory()->create();
-        $this->actingAs($user);
+        Sanctum::actingAs($user); 
 
-        $response = $this->post('/subscriptions', ['plan' => 'premium']);
-
-
+        $response = $this->postJson('/api/subscriptions', ['plan' => 'premium']);
 
         $response->assertStatus(201);
         $this->assertDatabaseHas('subscriptions', [
@@ -48,3 +46,4 @@ class SubscriptionTest extends TestCase
         ]);
     }
 }
+

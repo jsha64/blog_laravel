@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\SubscriptionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -17,4 +16,3 @@ use App\Http\Controllers\SubscriptionController;
 Route::get('/', function () {
     return view('welcome');
 });
-Route::post('/subscriptions', [SubscriptionController::class, 'store'])->middleware('auth');
