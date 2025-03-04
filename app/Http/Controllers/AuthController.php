@@ -6,10 +6,15 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Requests\RegisterRequest;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
+    public function showLoginForm()
+    {
+        return view('auth.login');
+    }
+
     // User registration
     public function register(RegisterRequest $request)
     {
@@ -36,23 +41,19 @@ class AuthController extends Controller
     // Login
     public function login(Request $request)
     {
-        $request->validate([
+        $credentials = $request->validate([
             'email' => 'required|email',
             'password' => 'required'
         ]);
 
-        $user = User::where('email', $request->email)->first();
-
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['Las credenciales son incorrectas.']
-            ]);
+        if (Auth::attempt($credentials)) {
+            $request->session()->regenerate();
+            return redirect()->route('admin.users'); // Redirigir al panel de admin
         }
 
-        return response()->json([
-            'message' => 'Inicio de sesión exitoso',
-            'token' => $user->createToken('auth_token')->plainTextToken
-        ], 200);
+        return back()->withErrors([
+            'email' => 'Las credenciales son incorrectas.',
+        ]);
     }
 
     // Logout
